@@ -7,20 +7,17 @@ from pydantic import BaseModel
 
 app = FastAPI(title="Telco Churn API")
 
-# Frontend'den istek gelebilsin diye CORS açıyoruz
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],   # sonra istersen sadece localhost'a indirgeriz
+    allow_origins=["*"],   
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Pipeline'ı yükle
 pipe = joblib.load("churn_pipeline.joblib")
 
 
-# ✅ Frontend formundan gelecek alanlar (Telco dataset kolonları)
 class ChurnInput(BaseModel):
     gender: str
     SeniorCitizen: int
@@ -50,10 +47,8 @@ def health():
 
 @app.post("/predict")
 def predict(data: ChurnInput):
-    # JSON -> DataFrame (pipeline bunu bekliyor)
     df = pd.DataFrame([data.model_dump()])
 
-    # churn olasılığı (class 1)
     proba = float(pipe.predict_proba(df)[:, 1][0])
     label = int(proba >= 0.5)
 

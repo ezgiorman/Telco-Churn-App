@@ -119,7 +119,7 @@
       }
     }
 
-    // Charts data
+
     const histAll = loadHistory().slice().reverse(); // chronological
     const labels = histAll.map((x, i) => i + 1);
     const probs = histAll.map(x => (x.probability * 100));
@@ -127,7 +127,6 @@
     const churnCount = histAll.filter(x => x.label === 1).length;
     const notCount = histAll.filter(x => x.label === 0).length;
 
-    // Trend chart
     new Chart(document.getElementById("trend"), {
       type: "line",
       data: {
@@ -147,7 +146,6 @@
       }
     });
 
-    // Pie chart
     new Chart(document.getElementById("pie"), {
       type: "doughnut",
       data: {
