@@ -58,6 +58,16 @@ The trained model is saved as a `.joblib` pipeline and loaded by the backend at 
 ```
 ## Local Run (Development)
 
+## Application Screenshots
+
+### Prediction Page
+![Prediction Page](screenshots/prediction.png)
+
+### Dashboard
+![Dashboard](screenshots/dashboard.png)
+![Dashboard](screenshots/recent_predictions.png)
+
+
 ### Backend Setup
 
 ```bash
