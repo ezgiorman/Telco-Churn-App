@@ -30,8 +30,6 @@ churn_app/
 └── README.md
 
 
----
-
 ## Model Information
 
 - **Task:** Binary classification (Churn / Not Churn)
@@ -68,7 +66,7 @@ python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
 uvicorn app:app --reload
-Backend will be available at:
+
 
 http://127.0.0.1:8000
 
