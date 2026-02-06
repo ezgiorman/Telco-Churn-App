@@ -30,7 +30,6 @@ y = df["Churn"]
 cat_cols = X.select_dtypes(include=["object"]).columns.tolist()
 num_cols = [c for c in X.columns if c not in cat_cols]
 
-# ✅ 8) Preprocess: kategorik -> OneHot, numeric -> olduğu gibi bırak
 preprocess = ColumnTransformer(
     transformers=[
         ("cat", OneHotEncoder(handle_unknown="ignore"), cat_cols),
