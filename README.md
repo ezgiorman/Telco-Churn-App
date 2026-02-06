@@ -42,6 +42,9 @@ churn_app/
 
 The trained model is saved as a `.joblib` pipeline and loaded by the backend at application startup.
 
+### Confusion Matrix (Decision Tree)
+![Confusion Matrix](screenshots/confusion_matrix.png)
+
 ```
 ```
 
