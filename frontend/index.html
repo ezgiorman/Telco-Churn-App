@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Telco Churn Predictor</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --card:#111b2e;
+      --muted:#9fb0d0;
+      --text:#eaf0ff;
+      --border:rgba(255,255,255,.10);
+      --accent:#7c5cff;
+      --good:#20c997;
+      --warn:#ffcc00;
+      --bad:#ff4d4f;
+      --shadow: 0 12px 40px rgba(0,0,0,.35);
+      --radius: 16px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background: radial-gradient(1200px 600px at 20% 0%, rgba(124,92,255,.20), transparent 60%),
+                  radial-gradient(900px 500px at 90% 10%, rgba(32,201,151,.12), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+    }
+    a{color:inherit; text-decoration:none}
+    .wrap{max-width:1100px;margin:36px auto;padding:0 16px}
+    .topbar{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:12px; margin-bottom:18px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px;
+    }
+    .logo{
+      width:40px;height:40px;border-radius:12px;
+      background: linear-gradient(135deg, rgba(124,92,255,.9), rgba(32,201,151,.9));
+      box-shadow: var(--shadow);
+    }
+    .brand h1{font-size:18px;margin:0}
+    .brand p{margin:0;color:var(--muted);font-size:12px}
+    .nav{
+      display:flex; gap:10px; flex-wrap:wrap;
+    }
+    .pill{
+      padding:10px 12px; border:1px solid var(--border);
+      border-radius:999px; background: rgba(255,255,255,.04);
+      transition: .2s;
+      font-size:13px;
+    }
+    .pill:hover{transform: translateY(-1px); border-color: rgba(124,92,255,.45)}
+    .grid{
+      display:grid; gap:16px;
+      grid-template-columns: 1.3fr .7fr;
+    }
+    @media (max-width: 900px){
+      .grid{grid-template-columns: 1fr}
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card-h{
+      padding:16px 16px 10px;
+      display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+    }
+    .card-h h2{margin:0;font-size:16px}
+    .card-h .hint{color:var(--muted);font-size:12px;margin-top:4px}
+    .card-b{padding:0 16px 16px}
+    .form{
+      display:grid; gap:12px;
+      grid-template-columns: 1fr 1fr;
+    }
+    @media (max-width: 700px){
+      .form{grid-template-columns: 1fr}
+    }
+    label{display:flex; flex-direction:column; gap:6px; font-size:12px; color:var(--muted)}
+    input, select{
+      padding:10px 10px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.18);
+      color: var(--text);
+      outline:none;
+    }
+    input:focus, select:focus{border-color: rgba(124,92,255,.6)}
+    .actions{
+      display:flex; gap:10px; margin-top:14px; flex-wrap:wrap;
+    }
+    .btn{
+      padding:10px 14px; border-radius:12px; border:1px solid var(--border);
+      background: rgba(124,92,255,.18);
+      color:var(--text);
+      cursor:pointer;
+      transition:.2s;
+      font-weight:600;
+    }
+    .btn:hover{transform: translateY(-1px); border-color: rgba(124,92,255,.55)}
+    .btn.secondary{background: rgba(255,255,255,.06)}
+    .side{
+      padding:16px;
+      display:flex; flex-direction:column; gap:12px;
+    }
+    .stat{
+      padding:12px; border:1px solid var(--border); border-radius:14px;
+      background: rgba(255,255,255,.04);
+    }
+    .stat .k{color:var(--muted); font-size:12px}
+    .stat .v{font-size:20px; margin-top:6px}
+    .badge{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 10px; border-radius:999px;
+      font-size:12px; font-weight:700;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.04);
+      white-space:nowrap;
+    }
+    .dot{width:10px;height:10px;border-radius:999px;background: var(--muted)}
+    .risk-low .dot{background: var(--good)}
+    .risk-med .dot{background: var(--warn)}
+    .risk-high .dot{background: var(--bad)}
+    .muted{color:var(--muted); font-size:12px; line-height:1.5}
+    .resultBox{
+      padding:14px; border-radius:14px; border:1px solid var(--border);
+      background: rgba(255,255,255,.05);
+    }
+    .row{display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap}
+    .big{font-size:30px; font-weight:800}
+    .small{font-size:12px; color:var(--muted)}
+    .footer{
+      margin-top:18px; color:var(--muted); font-size:12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo"></div>
+        <div>
+          <h1>Telco Churn Predictor</h1>
+          <p>Gradient Boosting • FastAPI backend</p>
+        </div>
+      </div>
+      <div class="nav">
+        <a class="pill" href="index.html">Prediction</a>
+        <a class="pill" href="dashboard.html">Dashboard</a>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- FORM CARD -->
+      <div class="card">
+        <div class="card-h">
+          <div>
+            <h2>Customer Details</h2>
+            <div class="hint">Fill the form and run prediction.</div>
+          </div>
+          <span id="riskBadge" class="badge"><span class="dot"></span><span>Waiting</span></span>
+        </div>
+        <div class="card-b">
+          <div class="form">
+            <label>gender
+              <select id="gender"><option>Male</option><option>Female</option></select>
+            </label>
+
+            <label>SeniorCitizen
+              <select id="SeniorCitizen"><option value="0">0</option><option value="1">1</option></select>
+            </label>
+
+            <label>Partner
+              <select id="Partner"><option>No</option><option>Yes</option></select>
+            </label>
+
+            <label>Dependents
+              <select id="Dependents"><option>No</option><option>Yes</option></select>
+            </label>
+
+            <label>tenure (months)
+              <input id="tenure" value="12" />
+            </label>
+
+            <label>MonthlyCharges
+              <input id="MonthlyCharges" value="70" />
+            </label>
+
+            <label>TotalCharges
+              <input id="TotalCharges" value="840" />
+            </label>
+
+            <label>PhoneService
+              <select id="PhoneService"><option>Yes</option><option>No</option></select>
+            </label>
+
+            <label>MultipleLines
+              <select id="MultipleLines"><option>No</option><option>Yes</option><option>No phone service</option></select>
+            </label>
+
+            <label>InternetService
+              <select id="InternetService"><option>DSL</option><option>Fiber optic</option><option>No</option></select>
+            </label>
+
+            <label>OnlineSecurity
+              <select id="OnlineSecurity"><option>No</option><option>Yes</option><option>No internet service</option></select>
+            </label>
+
+            <label>OnlineBackup
+              <select id="OnlineBackup"><option>No</option><option>Yes</option><option>No internet service</option></select>
+            </label>
+
+            <label>DeviceProtection
+              <select id="DeviceProtection"><option>No</option><option>Yes</option><option>No internet service</option></select>
+            </label>
+
+            <label>TechSupport
+              <select id="TechSupport"><option>No</option><option>Yes</option><option>No internet service</option></select>
+            </label>
+
+            <label>StreamingTV
+              <select id="StreamingTV"><option>No</option><option>Yes</option><option>No internet service</option></select>
+            </label>
+
+            <label>StreamingMovies
+              <select id="StreamingMovies"><option>No</option><option>Yes</option><option>No internet service</option></select>
+            </label>
+
+            <label>Contract
+              <select id="Contract"><option>Month-to-month</option><option>One year</option><option>Two year</option></select>
+            </label>
+
+            <label>PaperlessBilling
+              <select id="PaperlessBilling"><option>Yes</option><option>No</option></select>
+            </label>
+
+            <label>PaymentMethod
+              <select id="PaymentMethod">
+                <option>Electronic check</option>
+                <option>Mailed check</option>
+                <option>Bank transfer (automatic)</option>
+                <option>Credit card (automatic)</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="actions">
+            <button class="btn" id="btnPredict">Predict</button>
+            <button class="btn secondary" id="btnRandom">Fill random example</button>
+            <button class="btn secondary" id="btnClear">Clear saved history</button>
+          </div>
+
+          <div class="footer">
+            Tip: every prediction is saved locally and shown in the Dashboard page.
+          </div>
+        </div>
+      </div>
+
+      <!-- RESULT / INFO CARD -->
+      <div class="card">
+        <div class="card-h">
+          <div>
+            <h2>Result</h2>
+            <div class="hint">Probability + quick explanation.</div>
+          </div>
+        </div>
+        <div class="side">
+          <div class="resultBox" id="resultBox">
+            <div class="row">
+              <div>
+                <div class="small">Churn probability</div>
+                <div class="big" id="probText">—</div>
+              </div>
+              <div>
+                <div class="small">Prediction</div>
+                <div class="big" id="labelText">—</div>
+              </div>
+            </div>
+            <div class="muted" style="margin-top:10px" id="noteText">
+              Run a prediction to see the output.
+            </div>
+          </div>
+
+          <div class="stat">
+            <div class="k">Saved predictions (local)</div>
+            <div class="v" id="countSaved">0</div>
+          </div>
+
+          <div class="stat">
+            <div class="k">Backend status</div>
+            <div class="v" id="backendStatus">Checking…</div>
+            <div class="muted" id="backendHint"></div>
+          </div>
+
+          <div class="muted">
+            This UI is local-only. If you deploy later, we can add user accounts and a database for history.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = "http://127.0.0.1:8000";
+    const API_URL = API_BASE + "/predict";
+    const STORAGE_KEY = "churn_history_v1";
+
+    function v(id){ return document.getElementById(id).value; }
+
+    function getPayload(){
+      return {
+        gender: v("gender"),
+        SeniorCitizen: Number(v("SeniorCitizen")),
+        Partner: v("Partner"),
+        Dependents: v("Dependents"),
+        tenure: Number(v("tenure")),
+        PhoneService: v("PhoneService"),
+        MultipleLines: v("MultipleLines"),
+        InternetService: v("InternetService"),
+        OnlineSecurity: v("OnlineSecurity"),
+        OnlineBackup: v("OnlineBackup"),
+        DeviceProtection: v("DeviceProtection"),
+        TechSupport: v("TechSupport"),
+        StreamingTV: v("StreamingTV"),
+        StreamingMovies: v("StreamingMovies"),
+        Contract: v("Contract"),
+        PaperlessBilling: v("PaperlessBilling"),
+        PaymentMethod: v("PaymentMethod"),
+        MonthlyCharges: Number(v("MonthlyCharges")),
+        TotalCharges: Number(v("TotalCharges")),
+      };
+    }
+
+    function setRiskBadge(prob){
+      const badge = document.getElementById("riskBadge");
+      badge.classList.remove("risk-low","risk-med","risk-high");
+
+      let label = "Waiting";
+      if (prob !== null){
+        if (prob < 0.33){ badge.classList.add("risk-low"); label = "Low risk"; }
+        else if (prob < 0.66){ badge.classList.add("risk-med"); label = "Medium risk"; }
+        else { badge.classList.add("risk-high"); label = "High risk"; }
+      }
+
+      badge.innerHTML = `<span class="dot"></span><span>${label}</span>`;
+    }
+
+    function loadHistory(){
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); }
+      catch { return []; }
+    }
+
+    function saveToHistory(item){
+      const h = loadHistory();
+      h.unshift(item);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(h.slice(0, 50))); // max 50 kayıt
+      updateSavedCount();
+    }
+
+    function updateSavedCount(){
+      document.getElementById("countSaved").textContent = loadHistory().length;
+    }
+
+    function clearHistory(){
+      localStorage.removeItem(STORAGE_KEY);
+      updateSavedCount();
+    }
+
+    async function checkBackend(){
+      const status = document.getElementById("backendStatus");
+      const hint = document.getElementById("backendHint");
+      try{
+        const res = await fetch(API_BASE + "/health");
+        if(!res.ok) throw new Error("Not OK");
+        const data = await res.json();
+        status.textContent = data.status === "ok" ? "Online" : "Unknown";
+        hint.textContent = "FastAPI is reachable.";
+      }catch(e){
+        status.textContent = "Offline";
+        hint.textContent = "Start backend: uvicorn app:app --reload";
+      }
+    }
+
+    function fillRandom(){
+      const rnd = (arr) => arr[Math.floor(Math.random() * arr.length)];
+      const set = (id, val) => document.getElementById(id).value = val;
+
+      set("gender", rnd(["Male","Female"]));
+      set("SeniorCitizen", rnd(["0","1"]));
+      set("Partner", rnd(["Yes","No"]));
+      set("Dependents", rnd(["Yes","No"]));
+      set("tenure", String(Math.floor(Math.random() * 72)));
+      set("MonthlyCharges", (20 + Math.random() * 100).toFixed(2));
+      set("TotalCharges", (Math.random() * 6000).toFixed(2));
+      set("PhoneService", rnd(["Yes","No"]));
+      set("MultipleLines", rnd(["Yes","No","No phone service"]));
+      set("InternetService", rnd(["DSL","Fiber optic","No"]));
+      set("OnlineSecurity", rnd(["Yes","No","No internet service"]));
+      set("OnlineBackup", rnd(["Yes","No","No internet service"]));
+      set("DeviceProtection", rnd(["Yes","No","No internet service"]));
+      set("TechSupport", rnd(["Yes","No","No internet service"]));
+      set("StreamingTV", rnd(["Yes","No","No internet service"]));
+      set("StreamingMovies", rnd(["Yes","No","No internet service"]));
+      set("Contract", rnd(["Month-to-month","One year","Two year"]));
+      set("PaperlessBilling", rnd(["Yes","No"]));
+      set("PaymentMethod", rnd([
+        "Electronic check",
+        "Mailed check",
+        "Bank transfer (automatic)",
+        "Credit card (automatic)"
+      ]));
+    }
+
+    async function predict(){
+      document.getElementById("noteText").textContent = "Predicting…";
+      setRiskBadge(null);
+
+      const payload = getPayload();
+      try{
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if(!res.ok) throw new Error(JSON.stringify(data));
+
+        const prob = Number(data.churn_probability);
+        const label = data.churn_label === 1 ? "Churn" : "Not churn";
+
+        document.getElementById("probText").textContent = (prob*100).toFixed(2) + "%";
+        document.getElementById("labelText").textContent = label;
+
+        setRiskBadge(prob);
+        document.getElementById("noteText").textContent =
+          label === "Churn"
+            ? "High risk customer. Consider retention offers (contract, support, payment method)."
+            : "Lower churn risk. Monitor key services and billing preferences.";
+
+        // Save
+        saveToHistory({
+          ts: new Date().toISOString(),
+          probability: prob,
+          label: data.churn_label,
+          input: payload
+        });
+
+      }catch(e){
+        document.getElementById("noteText").textContent =
+          "Request failed. Is backend running on 127.0.0.1:8000?";
+        document.getElementById("probText").textContent = "—";
+        document.getElementById("labelText").textContent = "—";
+        setRiskBadge(null);
+      }
+    }
+
+    document.getElementById("btnPredict").onclick = predict;
+    document.getElementById("btnRandom").onclick = fillRandom;
+    document.getElementById("btnClear").onclick = clearHistory;
+
+    updateSavedCount();
+    checkBackend();
+    setRiskBadge(null);
+  </script>
+</body>
+</html>

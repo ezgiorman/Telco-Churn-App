@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard • Telco Churn</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root{
+      --bg:#0b1220; --card:#111b2e; --muted:#9fb0d0; --text:#eaf0ff;
+      --border:rgba(255,255,255,.10); --shadow:0 12px 40px rgba(0,0,0,.35); --r:16px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background: radial-gradient(1100px 600px at 20% 0%, rgba(124,92,255,.18), transparent 60%), var(--bg);
+      color:var(--text);
+    }
+    .wrap{max-width:1100px;margin:36px auto;padding:0 16px}
+    .top{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+    .pill{padding:10px 12px;border:1px solid var(--border);border-radius:999px;background:rgba(255,255,255,.04);text-decoration:none;color:inherit;font-size:13px}
+    .grid{display:grid;gap:16px;grid-template-columns:1fr 1fr}
+    @media(max-width:900px){.grid{grid-template-columns:1fr}}
+    .card{background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);padding:16px}
+    h1{margin:0;font-size:18px}
+    .muted{color:var(--muted);font-size:12px;line-height:1.5}
+    table{width:100%;border-collapse:collapse;margin-top:10px}
+    th,td{border-bottom:1px solid var(--border);padding:10px 6px;font-size:12px;color:var(--text);text-align:left}
+    th{color:var(--muted);font-weight:600}
+    .btn{padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:rgba(255,255,255,.05);cursor:pointer;color:var(--text);font-weight:600}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <h1>Dashboard</h1>
+        <div class="muted">Charts are generated from locally saved predictions (no database).</div>
+      </div>
+      <div class="row">
+        <a class="pill" href="index.html">Prediction</a>
+        <a class="pill" href="dashboard.html">Dashboard</a>
+        <button class="btn" id="btnClear">Clear history</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2 style="margin:0 0 6px;font-size:16px">Probability Trend</h2>
+        <div class="muted">Last predictions over time.</div>
+        <canvas id="trend" height="120"></canvas>
+      </div>
+
+      <div class="card">
+        <h2 style="margin:0 0 6px;font-size:16px">Churn vs Not Churn</h2>
+        <div class="muted">Distribution of predicted labels.</div>
+        <canvas id="pie" height="120"></canvas>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <h2 style="margin:0 0 6px;font-size:16px">Recent Predictions</h2>
+      <div class="muted">Showing up to last 20 records.</div>
+      <div id="empty" class="muted" style="margin-top:10px; display:none;">No saved predictions yet. Go to Prediction page and run some.</div>
+      <table id="tbl" style="display:none;">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Probability</th>
+            <th>Label</th>
+            <th>Contract</th>
+            <th>Payment</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "churn_history_v1";
+
+    function loadHistory(){
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); }
+      catch { return []; }
+    }
+
+    function clearHistory(){
+      localStorage.removeItem(STORAGE_KEY);
+      location.reload();
+    }
+
+    document.getElementById("btnClear").onclick = clearHistory;
+
+    const h = loadHistory().slice(0, 20);
+    const empty = document.getElementById("empty");
+    const tbl = document.getElementById("tbl");
+    const tbody = document.getElementById("tbody");
+
+    if(h.length === 0){
+      empty.style.display = "block";
+    }else{
+      tbl.style.display = "table";
+      for(const item of h){
+        const tr = document.createElement("tr");
+        const dt = new Date(item.ts);
+        const prob = (item.probability * 100).toFixed(2) + "%";
+        const label = item.label === 1 ? "Churn" : "Not churn";
+
+        tr.innerHTML = `
+          <td>${dt.toLocaleString()}</td>
+          <td>${prob}</td>
+          <td>${label}</td>
+          <td>${item.input?.Contract ?? "-"}</td>
+          <td>${item.input?.PaymentMethod ?? "-"}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }
+
+    // Charts data
+    const histAll = loadHistory().slice().reverse(); // chronological
+    const labels = histAll.map((x, i) => i + 1);
+    const probs = histAll.map(x => (x.probability * 100));
+
+    const churnCount = histAll.filter(x => x.label === 1).length;
+    const notCount = histAll.filter(x => x.label === 0).length;
+
+    // Trend chart
+    new Chart(document.getElementById("trend"), {
+      type: "line",
+      data: {
+        labels,
+        datasets: [{
+          label: "Churn probability (%)",
+          data: probs,
+          tension: 0.3
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: true } },
+        scales: {
+          y: { beginAtZero: true, max: 100 }
+        }
+      }
+    });
+
+    // Pie chart
+    new Chart(document.getElementById("pie"), {
+      type: "doughnut",
+      data: {
+        labels: ["Not churn", "Churn"],
+        datasets: [{
+          data: [notCount, churnCount]
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { position: "bottom" } }
+      }
+    });
+  </script>
+</body>
+</html>
