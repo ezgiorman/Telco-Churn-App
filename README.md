@@ -16,18 +16,19 @@ customer churn for a telecom company.
 
 ## Project Structure
 
+```text
 churn_app/
-│
 ├── backend/
-│ ├── app.py # FastAPI backend
-│ ├── requirements.txt # Python dependencies
-│ └── churn_pipeline.joblib # Trained ML pipeline
+│   ├── app.py                  # FastAPI backend
+│   ├── requirements.txt         # Python dependencies
+│   └── churn_pipeline.joblib    # Trained ML pipeline
 │
 ├── frontend/
-│ ├── index.html # Prediction UI
-│ └── dashboard.html # Charts & analytics
+│   ├── index.html               # Prediction UI
+│   └── dashboard.html           # Charts & analytics
 │
 └── README.md
+
 
 ---
 
