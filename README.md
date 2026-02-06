@@ -28,8 +28,7 @@ churn_app/
 │   └── dashboard.html           # Charts & analytics
 │
 └── README.md
-
-
+```
 ## Model Information
 
 - **Task:** Binary classification (Churn / Not Churn)
@@ -43,7 +42,8 @@ churn_app/
 
 The trained model is saved as a `.joblib` pipeline and loaded by the backend at application startup.
 
----
+```
+```
 
 ## How the System Works
 
@@ -54,8 +54,8 @@ The trained model is saved as a `.joblib` pipeline and loaded by the backend at 
 5. Result is returned to frontend and displayed
 6. Predictions are stored locally in the browser for dashboard visualization
 
----
-
+```
+```
 ## Local Run (Development)
 
 ### Backend Setup
@@ -71,28 +71,32 @@ uvicorn app:app --reload
 http://127.0.0.1:8000
 
 API documentation: http://127.0.0.1:8000/docs
-
-Frontend Setup
--- cd frontend
--- python -m http.server 5173
+```
+## Frontend Setup
+```
+cd frontend
+python -m http.server 5173
 
 Open in browser:
 http://127.0.0.1:5173/index.html
-
+```
 Deployment
-- This project can be deployed to the cloud as follows:
-
--- Backend --
+This project can be deployed to the cloud as follows:
+      
+Backend 
 Render: https://render.com
 Railway: https://railway.app
 
--- Frontend --
+Frontend
 Netlify: https://www.netlify.com
 Vercel: https://vercel.com
 
-Notes
-No database is used
+```
+```
+## Notes
+No database is used.
 - Prediction history is stored in browser localStorage
 - Backend and frontend are completely independent
 The model can be replaced by updating:
 - backend/churn_pipeline.joblib
+```
